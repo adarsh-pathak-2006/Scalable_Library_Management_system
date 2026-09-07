@@ -10,6 +10,7 @@ class UserGetSerializer(serializers.ModelSerializer):
         fields=['username', 'email', 'role']
 
 class RegisterSerializer(serializers.ModelSerializer):
+    college=serializers.PrimaryKeyRelatedField(queryset=College.objects.all())
     class Meta:
         model=User
         fields=['username', 'email', 'mobile_no', 'role', 'college']
