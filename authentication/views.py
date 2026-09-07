@@ -38,7 +38,7 @@ class OtpVerificationAPI(APIView):
         if serial.is_valid():
             otp=serial.validated_data['otp']
             session=cache.get(cached_session_key(code=code))
-            generated_otp=cache.get(OtpGenerationTask(user_code=code))
+            generated_otp=cache.get(cached_otp_key(user_code=code))
             if generated_otp==otp:
                 session['is_verified']=True
                 cache.set(cached_session_key(code=code), session, timeout=300)
