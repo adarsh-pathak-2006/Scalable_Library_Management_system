@@ -1,0 +1,22 @@
+from rest_framework import serializers
+from .models import Profile, College
+from django.contrib.auth import get_user_model
+
+User=get_user_model()
+
+class UserGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=['username', 'email', 'role']
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields=['username', 'email', 'mobile_no', 'role', 'college']
+
+class OtpSerializer(serializers.Serializer):
+    otp=serializers.CharField()
+
+class PasswordSerializer(serializers.Serializer):
+    password=serializers.CharField()
+    
