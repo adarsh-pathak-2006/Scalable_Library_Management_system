@@ -7,7 +7,8 @@ from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer
 from django.db.models import Q
 from rest_framework.response import Response
 import random
-from .cache_keys import cached_session_key
+from .cache_keys import cached_session_key, cached_otp_key
+from .tasks import OtpGenerationTask
 
 User=get_user_model()
 
@@ -25,7 +26,34 @@ class RegisterAPI(APIView):
                 return Response({'message':'username or email or mobile_no already exists'}, status=400)
             user_code=random.randint(10000000, 99999999)
             key=cached_session_key(user_code)
-            cache.set(key, {'username':username, 'email':email, 'mobile_no':mobile_no, 'role':role, 'college':college}, timeout=500)
+            cache.set(key, {'username':username, 'email':email, 'mobile_no':mobile_no, 'role':role, 'college':college}, timeout=300)
+            OtpGenerationTask.delay(user_code)
             return Response({'message':'otp sent on the mobile no', 'session_code':user_code})
+        return Response(serial.errors, status=400)
 
 
+class OtpVerificationAPI(APIView):
+    def post(self, request, code):
+        serial=OtpSerializer(data=request.data)
+        if serial.is_valid():
+            otp=serial.validated_data['otp']
+            session=cache.get(cached_session_key(code=code))
+            generated_otp=cache.get(OtpGenerationTask(user_code=code))
+            if generated_otp==otp:
+                session['is_verified']=True
+                cache.set(cached_session_key(code=code), session, timeout=300)
+                return Response({'message':'otp verified set the password now'}, status=200)
+            return Response({'message':'otp not correct_try again'}, status=400)
+        return Response(serial.errors, status=400)
+
+class SetPasswordAPI(APIView):
+    def post(self, request, code):
+        serial=PasswordSerializer(data=request.data)
+        if serial.is_valid():
+            password=serial.validated_data['password']
+            cached_session=cache.get(cached_session_key(code=code))
+            if cached_session['is_verified']==True:
+                User.objects.create_user(username=cached_session['username'], email=cached_session['email'], password=password, mobile_no=cached_session['mobile_no'], role=cached_session.get('role'), college=cached_session['college'])
+                return Response({'message':'User registration Successfull'}, status=201)
+            return Response({'message':'not verified'}, status=400)
+        return Response(serial.errors, status=400)
