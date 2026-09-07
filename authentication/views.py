@@ -3,11 +3,11 @@ from .models import Profile, College
 from rest_framework.views import APIView
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
-from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer
+from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer, ProfileSerializer
 from django.db.models import Q
 from rest_framework.response import Response
 import random
-from .cache_keys import cached_session_key, cached_otp_key
+from .cache_keys import cached_session_key, cached_otp_key, profile_cache_key
 from .tasks import OtpGenerationTask
 
 User=get_user_model()
@@ -56,4 +56,21 @@ class SetPasswordAPI(APIView):
                 User.objects.create_user(username=cached_session['username'], email=cached_session['email'], password=password, mobile_no=cached_session['mobile_no'], role=cached_session.get('role'), college=cached_session['college'])
                 return Response({'message':'User registration Successfull'}, status=201)
             return Response({'message':'not verified'}, status=400)
+        return Response(serial.errors, status=400)
+
+class MyProfileAPI(APIView):
+    def get(self, request):
+        cached_data=cache.get(profile_cache_key(request.user.id))
+        if cached_data:
+            return Response(cached_data, status=200)
+        data=get_object_or_404(User.objects.select_related('user'), user=request.user)
+        serial=ProfileSerializer(data)
+        return Response(serial.data, status=200)
+
+    def patch(self, request):
+        instance=get_object_or_404(Profile.objects.select_related('user'), user=request.user)
+        serial=ProfileSerializer(instance, data=request.data, partial=True)
+        if serial.is_valid():
+            serial.save()
+            return Response(serial.data, status=200)
         return Response(serial.errors, status=400)

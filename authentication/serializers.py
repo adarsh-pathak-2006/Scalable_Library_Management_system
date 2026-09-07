@@ -20,4 +20,9 @@ class OtpSerializer(serializers.Serializer):
 
 class PasswordSerializer(serializers.Serializer):
     password=serializers.CharField()
-    
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user=UserGetSerializer(read_only=True)
+    class Meta:
+        model=Profile
+        fields='__all__'
