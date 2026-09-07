@@ -3,12 +3,16 @@ from .models import Profile, College
 from rest_framework.views import APIView
 from django.core.cache import cache
 from django.contrib.auth import get_user_model
-from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer, ProfileSerializer
+from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer, ProfileSerializer, CollegeSerializer
 from django.db.models import Q
 from rest_framework.response import Response
 import random
 from .cache_keys import cached_session_key, cached_otp_key, profile_cache_key
 from .tasks import OtpGenerationTask
+from rest_framework.generics import ListCreateAPIView
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework.pagination import PageNumberPagination
 
 User=get_user_model()
 
@@ -65,6 +69,7 @@ class MyProfileAPI(APIView):
             return Response(cached_data, status=200)
         data=get_object_or_404(User.objects.select_related('user'), user=request.user)
         serial=ProfileSerializer(data)
+        cache.set(profile_cache_key(request.user.id), serial.data, timeout=500)
         return Response(serial.data, status=200)
 
     def patch(self, request):
@@ -72,5 +77,15 @@ class MyProfileAPI(APIView):
         serial=ProfileSerializer(instance, data=request.data, partial=True)
         if serial.is_valid():
             serial.save()
+            cache.delete(profile_cache_key(request.user.id))
             return Response(serial.data, status=200)
         return Response(serial.errors, status=400)
+
+class CollegeAPI(ListCreateAPIView):
+    serializer_class=CollegeSerializer
+    queryset=College.objects.all()
+    pagination_class=PageNumberPagination
+
+    @method_decorator(cache_page(60*15))
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
