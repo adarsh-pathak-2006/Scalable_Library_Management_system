@@ -16,6 +16,17 @@ class Book(models.Model):
     is_avaliable=models.BooleanField(default=True)
     added_on=models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            # Enforce non-negative stock at the database level.
+            # This fires even on raw SQL, bulk_update, or admin edits —
+            # unlike Python-only validation which can be bypassed.
+            models.CheckConstraint(
+                check=models.Q(quantity__gte=0),
+                name='book_quantity_non_negative'
+            )
+        ]
+
     def save(self, *args, **kwargs):
         if self.quantity > 0:
             self.is_avaliable=True
@@ -25,4 +36,3 @@ class Book(models.Model):
     
     def __str__(self):
         return self.name
-
