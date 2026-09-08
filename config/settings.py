@@ -84,10 +84,17 @@ CACHES = {
     }
 }
 
+if env('REDIS_URL') and env('REDIS_URL').startswith('rediss://'):
+    CACHES['default']['OPTIONS']['CONNECTION_POOL_KWARGS'] = {"ssl_cert_reqs": None}
+
 CELERY_BROKER_URL = env('REDIS_URL')
 CELERY_RESULT_BACKEND = env('REDIS_URL')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+if CELERY_BROKER_URL and CELERY_BROKER_URL.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = {'ssl_cert_reqs': 'CERT_NONE'}
+    CELERY_REDIS_BACKEND_USE_SSL = {'ssl_cert_reqs': 'CERT_NONE'}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
