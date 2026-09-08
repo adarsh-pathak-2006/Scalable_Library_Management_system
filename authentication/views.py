@@ -36,7 +36,7 @@ class RegisterAPI(APIView):
             role=serial.validated_data['role']
             college=serial.validated_data['college']
 
-            if User.objects.filter(Q(username=username), Q(email=email), Q(mobile_no=mobile_no)).exists():
+            if User.objects.filter(Q(username=username) | Q(email=email) | Q(mobile_no=mobile_no)).exists():
                 return Response({'message':'username or email or mobile_no already exists'}, status=400)
             user_code=random.randint(10000000, 99999999)
             key=cached_session_key(user_code)
@@ -87,7 +87,7 @@ class MyProfileAPI(APIView):
         cached_data=cache.get(profile_cache_key(request.user.id))
         if cached_data:
             return Response(cached_data, status=200)
-        data=get_object_or_404(User.objects.select_related('user'), user=request.user)
+        data=get_object_or_404(Profile.objects.select_related('user'), user=request.user)
         serial=ProfileSerializer(data)
         cache.set(profile_cache_key(request.user.id), serial.data, timeout=500)
         return Response(serial.data, status=200)

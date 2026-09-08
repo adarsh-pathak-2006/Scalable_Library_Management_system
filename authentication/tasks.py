@@ -7,6 +7,8 @@ import time
 @shared_task
 def OtpGenerationTask(user_code):
     cached_session=cache.get(cached_session_key(user_code))
+    if not cached_session:
+        return "session expired or not created"
     mobile_no=cached_session['mobile_no']
     time.sleep(10)
     generated_otp=random.randint(100000, 999999)
