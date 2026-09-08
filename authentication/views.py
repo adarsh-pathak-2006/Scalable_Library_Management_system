@@ -11,10 +11,22 @@ from config.cache_keys import cached_session_key, cached_otp_key, profile_cache_
 from .tasks import OtpGenerationTask
 from rest_framework.generics import ListCreateAPIView
 from config.pagination import GeneralPagination
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from config.permissions import IsStudent
+from config.throttling import RegistrationThrottle, TokenGenerationThrottle, TokenRefreshThrottle, OTPVerificationThrottle, GeneralThrottling
+from rest_framework.permissions import AllowAny, IsAdminUser
 
 User=get_user_model()
 
+class CustomTokenObtainAPI(TokenObtainPairView):
+    throttle_classes=[TokenGenerationThrottle]
+
+class CustomRefreshTokenAPI(TokenRefreshView):
+    throttle_classes=[TokenRefreshThrottle]
+
 class RegisterAPI(APIView):
+    throttle_classes=[RegistrationThrottle]
+    permission_classes=[AllowAny]
     def post(self, request):
         serial=RegisterSerializer(data=request.data)
         if serial.is_valid():
@@ -35,6 +47,8 @@ class RegisterAPI(APIView):
 
 
 class OtpVerificationAPI(APIView):
+    throttle_classes=[OTPVerificationThrottle]
+    permission_classes=[AllowAny]
     def post(self, request, code):
         serial=OtpSerializer(data=request.data)
         if serial.is_valid():
@@ -49,6 +63,8 @@ class OtpVerificationAPI(APIView):
         return Response(serial.errors, status=400)
 
 class SetPasswordAPI(APIView):
+    throttle_classes=[RegistrationThrottle]
+    permission_classes=[AllowAny]
     def post(self, request, code):
         serial=PasswordSerializer(data=request.data)
         if serial.is_valid():
@@ -61,6 +77,8 @@ class SetPasswordAPI(APIView):
         return Response(serial.errors, status=400)
 
 class MyProfileAPI(APIView):
+    throttle_classes=[GeneralThrottling]
+    permission_classes=[IsStudent]
     def get(self, request):
         cached_data=cache.get(profile_cache_key(request.user.id))
         if cached_data:
@@ -80,6 +98,8 @@ class MyProfileAPI(APIView):
         return Response(serial.errors, status=400)
 
 class CollegeAPI(ListCreateAPIView):
+    throttle_classes=[GeneralThrottling]
+    permission_classes=[IsAdminUser]
     serializer_class=CollegeSerializer
     queryset=College.objects.all()
     pagination_class=GeneralPagination

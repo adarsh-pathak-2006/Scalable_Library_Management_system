@@ -1,8 +1,6 @@
 from django.shortcuts import get_object_or_404
 from celery import shared_task
 from .models import Cart, Issue, CartBook, IssuedBook
-from django.core.cache import cache
-from config.cache_keys import issued_books_key
 
 @shared_task
 def adding_data_in_the_issuebookmodel_task(cart_id, issue_id):
