@@ -22,9 +22,12 @@ class CartBook(models.Model):
             raise "selected quantity should be lower than the avaliable stock."
         return super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.cart.user.user.username
+    
 class Issue(models.Model):
     cart=models.ForeignKey(Cart, on_delete=models.CASCADE)
     issued_on=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return self.cart.user.user.username

@@ -12,3 +12,6 @@ def category_cache_key(page_no):
 
 def books_cache_key(page_no):
     return f"cached_books_page:{page_no}"
+
+def cart_books_cache_key(user_id):
+    return f"books_in_cart_key_user:{user_id}"
