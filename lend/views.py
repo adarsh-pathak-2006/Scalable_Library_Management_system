@@ -7,8 +7,12 @@ from store.models import Book
 from config.cache_keys import cart_books_cache_key, issued_books_key
 from django.core.cache import cache
 from .tasks import adding_data_in_the_issuebookmodel_task
+from config.permissions import IsStudent
+from config.throttling import GeneralThrottling
 
 class CartAPI(APIView):
+    throttle_classes=[IsStudent]
+    throttle_classes=[GeneralThrottling]
     def get(self, request):
         cached_data=cache.get(cart_books_cache_key(user_id=request.user.id))
         if cached_data:
@@ -20,6 +24,8 @@ class CartAPI(APIView):
         return Response(serial.data, status=200)
 
 class AddToCartAPI(APIView):
+    throttle_classes=[IsStudent]
+    throttle_classes=[GeneralThrottling]
     def post(self, request, pk):
         serial=CartBookSerializer(data=request.data)
         if serial.is_valid():
@@ -35,6 +41,8 @@ class AddToCartAPI(APIView):
             return Response(serial.errors, status=400)
 
 class BooksIssueAPI(APIView):
+    throttle_classes=[IsStudent]
+    throttle_classes=[GeneralThrottling]
     def post(self, request, pk):
         cart_data=get_object_or_404(Cart, id=pk)
         issue_data=Issue.objects.create(cart=cart_data)
@@ -42,6 +50,8 @@ class BooksIssueAPI(APIView):
         return Response({'message':'books issued.'}, status=201)
 
 class IssuedBooksViewAPI(APIView):
+    throttle_classes=[IsStudent]
+    throttle_classes=[GeneralThrottling]
     def get(self, request):
         cached_data=cache.get(issued_books_key(user_id=request.user.id))
         if cached_data:

@@ -6,8 +6,15 @@ from config.pagination import GeneralPagination
 from .serializers import CategorySerializer, BookGetSerializer, BookWriteSerializer
 from django.core.cache import cache
 from config.cache_keys import category_cache_key, books_cache_key
+from config.permissions import IsStudentAndLibrarian, IsLibrarian
+from config.throttling import GeneralThrottling
 
 class CategoryAPI(APIView):
+    throttle_classes=[GeneralThrottling]
+    def get_permissions(self):
+        if self.request.method=='POST':
+            return [IsLibrarian]
+        return [IsStudentAndLibrarian]
     def get(self, request):
         page_no=request.query_params.get("page", "1")
         cached_data=cache.get(category_cache_key(page_no))
@@ -28,10 +35,20 @@ class CategoryAPI(APIView):
         return Response(serial.errors, status=400)
 
 class CategoryDetailAPI(RetrieveUpdateDestroyAPIView):
+    throttle_classes=[GeneralThrottling]
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE', 'POST']:
+            return [IsLibrarian]
+        return [IsStudentAndLibrarian]
     serializer_class=CategorySerializer
     queryset=Category.objects.all()
 
 class BookAPI(APIView):
+    throttle_classes=[GeneralThrottling]
+    def get_permissions(self):
+        if self.request.method=='POST':
+            return [IsLibrarian]
+        return [IsStudentAndLibrarian]
     def get(self, request):
         page_no=request.query_params.get("page", "1")
         cached_data=cache.get(books_cache_key(page_no))
@@ -52,6 +69,11 @@ class BookAPI(APIView):
         return Response(serial.errors, status=400)
 
 class BookDetailAPI(RetrieveUpdateDestroyAPIView):
+    throttle_classes=[GeneralThrottling]
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE', 'POST']:
+            return [IsLibrarian]
+        return [IsStudentAndLibrarian]
     def get_serializer_class(self):
         if self.request.method=='GET':
             return [BookGetSerializer]
