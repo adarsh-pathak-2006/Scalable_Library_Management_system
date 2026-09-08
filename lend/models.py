@@ -19,7 +19,7 @@ class CartBook(models.Model):
 
     def save(self, *args, **kwargs):
         if self.quantity > self.book.quantity:
-            raise "selected quantity should be lower than the avaliable stock."
+            raise ValueError("selected quantity should be lower than the avaliable stock.")
         return super().save(*args, **kwargs)
 
     def __str__(self):

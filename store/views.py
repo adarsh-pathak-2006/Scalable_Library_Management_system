@@ -13,8 +13,8 @@ class CategoryAPI(APIView):
     throttle_classes=[GeneralThrottling]
     def get_permissions(self):
         if self.request.method=='POST':
-            return [IsLibrarian]
-        return [IsStudentAndLibrarian]
+            return [IsLibrarian()]
+        return [IsStudentAndLibrarian()]
     def get(self, request):
         page_no=request.query_params.get("page", "1")
         cached_data=cache.get(category_cache_key(page_no))
@@ -38,8 +38,8 @@ class CategoryDetailAPI(RetrieveUpdateDestroyAPIView):
     throttle_classes=[GeneralThrottling]
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE', 'POST']:
-            return [IsLibrarian]
-        return [IsStudentAndLibrarian]
+            return [IsLibrarian()]
+        return [IsStudentAndLibrarian()]
     serializer_class=CategorySerializer
     queryset=Category.objects.all()
 
@@ -47,8 +47,8 @@ class BookAPI(APIView):
     throttle_classes=[GeneralThrottling]
     def get_permissions(self):
         if self.request.method=='POST':
-            return [IsLibrarian]
-        return [IsStudentAndLibrarian]
+            return [IsLibrarian()]
+        return [IsStudentAndLibrarian()]
     def get(self, request):
         page_no=request.query_params.get("page", "1")
         cached_data=cache.get(books_cache_key(page_no))
@@ -72,10 +72,10 @@ class BookDetailAPI(RetrieveUpdateDestroyAPIView):
     throttle_classes=[GeneralThrottling]
     def get_permissions(self):
         if self.request.method in ['PUT', 'PATCH', 'DELETE', 'POST']:
-            return [IsLibrarian]
-        return [IsStudentAndLibrarian]
+            return [IsLibrarian()]
+        return [IsStudentAndLibrarian()]
     def get_serializer_class(self):
         if self.request.method=='GET':
-            return [BookGetSerializer]
-        return [BookWriteSerializer]
+            return BookGetSerializer
+        return BookWriteSerializer
     queryset=Book.objects.select_related('category').all()

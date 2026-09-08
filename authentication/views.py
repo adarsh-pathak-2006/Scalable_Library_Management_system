@@ -54,6 +54,8 @@ class OtpVerificationAPI(APIView):
         if serial.is_valid():
             otp=serial.validated_data['otp']
             session=cache.get(cached_session_key(code=code))
+            if not session:
+                return Response({'message': 'session expired'}, status=400)
             generated_otp=cache.get(cached_otp_key(user_code=code))
             if generated_otp==otp:
                 session['is_verified']=True
@@ -70,6 +72,8 @@ class SetPasswordAPI(APIView):
         if serial.is_valid():
             password=serial.validated_data['password']
             cached_session=cache.get(cached_session_key(code=code))
+            if not cached_session:
+                return Response({'message': 'session expired'}, status=400)
             if cached_session['is_verified']==True:
                 User.objects.create_user(username=cached_session['username'], email=cached_session['email'], password=password, mobile_no=cached_session['mobile_no'], role=cached_session.get('role'), college=cached_session['college'])
                 return Response({'message':'User registration Successfull'}, status=201)

@@ -18,4 +18,5 @@ class BookWriteSerializer(ModelSerializer):
     category=PrimaryKeyRelatedField(queryset=Category.objects.all())
     class Meta:
         model=Book
+        fields='__all__'
         read_only_fields=['added_on', 'is_avaliable']

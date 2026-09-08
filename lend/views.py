@@ -11,7 +11,7 @@ from config.permissions import IsStudent
 from config.throttling import GeneralThrottling
 
 class CartAPI(APIView):
-    throttle_classes=[IsStudent]
+    permission_classes=[IsStudent]
     throttle_classes=[GeneralThrottling]
     def get(self, request):
         cached_data=cache.get(cart_books_cache_key(user_id=request.user.id))
@@ -24,7 +24,7 @@ class CartAPI(APIView):
         return Response(serial.data, status=200)
 
 class AddToCartAPI(APIView):
-    throttle_classes=[IsStudent]
+    permission_classes=[IsStudent]
     throttle_classes=[GeneralThrottling]
     def post(self, request, pk):
         serial=CartBookSerializer(data=request.data)
@@ -34,6 +34,8 @@ class AddToCartAPI(APIView):
             if CartBook.objects.select_related('book').filter(book=book_data).exists():
                 cart_book=CartBook.objects.select_related('cart__user__user', 'book').get(cart__user__user=request.user, book=book_data)
                 cart_book.quantity=cart_book.quantity + 1
+                cart_book.save()
+                return Response(CartBookSerializer(cart_book).data, status=200)
             else:
                 serial.save(cart=cart_data, book=book_data)
                 return Response(serial.data, status=201)
@@ -41,7 +43,7 @@ class AddToCartAPI(APIView):
             return Response(serial.errors, status=400)
 
 class BooksIssueAPI(APIView):
-    throttle_classes=[IsStudent]
+    permission_classes=[IsStudent]
     throttle_classes=[GeneralThrottling]
     def post(self, request, pk):
         cart_data=get_object_or_404(Cart, id=pk)
@@ -50,7 +52,7 @@ class BooksIssueAPI(APIView):
         return Response({'message':'books issued.'}, status=201)
 
 class IssuedBooksViewAPI(APIView):
-    throttle_classes=[IsStudent]
+    permission_classes=[IsStudent]
     throttle_classes=[GeneralThrottling]
     def get(self, request):
         cached_data=cache.get(issued_books_key(user_id=request.user.id))
