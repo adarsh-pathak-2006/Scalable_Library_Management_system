@@ -15,7 +15,7 @@ class CartBook(models.Model):
     added_on=models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints=models.UniqueConstraint(fields=['book', 'cart'], name='unique_book_in_cart')
+        constraints=[models.UniqueConstraint(fields=['book', 'cart'], name='unique_book_in_cart')]
 
     def save(self, *args, **kwargs):
         if self.quantity > self.book.quantity:
