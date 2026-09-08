@@ -6,6 +6,7 @@ from .models import Issue, CartBook, Cart
 from store.models import Book
 from config.cache_keys import cart_books_cache_key
 from django.core.cache import cache
+from .tasks import adding_data_in_the_issuebookmodel_task
 
 class CartAPI(APIView):
     def get(self, request):
@@ -36,7 +37,8 @@ class AddToCartAPI(APIView):
 class BooksIssueAPI(APIView):
     def post(self, request, pk):
         cart_data=get_object_or_404(Cart, id=pk)
-        Issue.objects.create(cart=cart_data)
+        issue_data=Issue.objects.create(cart=cart_data)
+        adding_data_in_the_issuebookmodel_task.delay(cart_id=pk, issue_id=issue_data.id)
         return Response({'message':'books issued.'}, status=201)
 
         
