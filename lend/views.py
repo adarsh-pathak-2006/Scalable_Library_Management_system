@@ -38,7 +38,7 @@ class BooksIssueAPI(APIView):
     def post(self, request, pk):
         cart_data=get_object_or_404(Cart, id=pk)
         issue_data=Issue.objects.create(cart=cart_data)
-        adding_data_in_the_issuebookmodel_task.delay(cart_id=pk, issue_id=issue_data.id, user_id=request.user.id)
+        adding_data_in_the_issuebookmodel_task.delay(cart_id=pk, issue_id=issue_data.id)
         return Response({'message':'books issued.'}, status=201)
 
 class IssuedBooksViewAPI(APIView):
