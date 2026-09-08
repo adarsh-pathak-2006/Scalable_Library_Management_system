@@ -25,10 +25,6 @@ class CartBook(models.Model):
 class Issue(models.Model):
     cart=models.ForeignKey(Cart, on_delete=models.CASCADE)
     issued_on=models.DateTimeField(auto_now_add=True)
-    date_issued=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
-
-    
-    
