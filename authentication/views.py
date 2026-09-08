@@ -10,8 +10,6 @@ import random
 from .cache_keys import cached_session_key, cached_otp_key, profile_cache_key
 from .tasks import OtpGenerationTask
 from rest_framework.generics import ListCreateAPIView
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from rest_framework.pagination import PageNumberPagination
 
 User=get_user_model()
@@ -85,7 +83,3 @@ class CollegeAPI(ListCreateAPIView):
     serializer_class=CollegeSerializer
     queryset=College.objects.all()
     pagination_class=PageNumberPagination
-
-    @method_decorator(cache_page(60*15))
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
