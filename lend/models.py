@@ -31,3 +31,11 @@ class Issue(models.Model):
 
     def __str__(self):
         return self.cart.user.user.username
+
+class IssuedBook(models.Model):
+    issue=models.ForeignKey(Issue, on_delete=models.CASCADE)
+    book=models.ForeignKey(Book, on_delete=models.CASCADE)
+    quantity=models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.book.name
