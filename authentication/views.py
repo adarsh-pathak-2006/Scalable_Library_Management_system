@@ -7,10 +7,10 @@ from .serializers import RegisterSerializer, OtpSerializer, PasswordSerializer, 
 from django.db.models import Q
 from rest_framework.response import Response
 import random
-from .cache_keys import cached_session_key, cached_otp_key, profile_cache_key
+from config.cache_keys import cached_session_key, cached_otp_key, profile_cache_key
 from .tasks import OtpGenerationTask
 from rest_framework.generics import ListCreateAPIView
-from rest_framework.pagination import PageNumberPagination
+from config.pagination import GeneralPagination
 
 User=get_user_model()
 
@@ -82,4 +82,4 @@ class MyProfileAPI(APIView):
 class CollegeAPI(ListCreateAPIView):
     serializer_class=CollegeSerializer
     queryset=College.objects.all()
-    pagination_class=PageNumberPagination
+    pagination_class=GeneralPagination

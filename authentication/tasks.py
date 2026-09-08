@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.core.cache import cache
 import random
-from .cache_keys import cached_otp_key, cached_session_key
+from config.cache_keys import cached_otp_key, cached_session_key
 import time
 
 @shared_task

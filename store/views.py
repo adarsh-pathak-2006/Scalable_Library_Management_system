@@ -1,3 +1,30 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from .models import Category, Book
+from rest_framework.response import Response
+from config.pagination import GeneralPagination
+from .serializers import CategorySerializer, BookGetSerializer, BookWriteSerializer
+from django.core.cache import cache
+from config.cache_keys import category_cache_key, books_cache_key
 
-# Create your views here.
+class CategoryAPI(APIView):
+    def get(self, request):
+        page_no=request.query_params.get("page", "1")
+        cached_data=cache.get(category_cache_key(page_no))
+        if cached_data:
+            return Response(cached_data, status=200)
+        paginator=GeneralPagination()
+        data=paginator.paginate_queryset(Category.objects.all(), request, view=self)
+        serial=CategorySerializer(data, many=True)
+        response=paginator.get_paginated_response(serial.data)
+        cache.set(category_cache_key(page_no), response.data, timeout=300)
+        return response
+
+    def post(self, request):
+        serial=CategorySerializer(data=request.data)
+        if serial.is_valid():
+            serial.save()
+            return Response(serial.data, status=200)
+        return Response(serial.errors, status=400)
+
+        
